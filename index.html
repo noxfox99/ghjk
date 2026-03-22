@@ -971,40 +971,100 @@ async function startSweep() {
     switchTab('config', document.querySelectorAll('.tab')[1]);
     return;
   }
-  var selected = wallets.filter(function(w){ return w._selected&&w.status==='pending'&&w.balance>=config.minBalance; });
-  if (!selected.length) { log('No eligible wallets selected (check min balance / status).','warn'); return; }
 
-  sweepRunning=true; sweepCancel=false;
-  document.getElementById('sweepOverlay').classList.add('active');
-  document.getElementById('sweepBtn').disabled=true;
-  log('Starting sweep: '+selected.length+' wallets → '+config.dest.slice(0,10)+'…','info');
-
-  for (var i=0;i<selected.length;i++) {
-    if (sweepCancel) { log('Sweep cancelled by user.','warn'); break; }
-    var w = selected[i];
-    setProgress(Math.round((i/selected.length)*100), i, selected.length, 'Sending '+w.balance.toFixed(2)+' USDT from …'+w.wallet.slice(-6));
-    w.status='processing'; renderTable();
-
-    // ── Replace below with real TronWeb TX call ──
-    await sleep(config.txDelay+Math.random()*300);
-    var success = Math.random()>0.08;
-    // ─────────────────────────────────────────────
-
-    if (success) {
-      w.status='done'; w.txHash=randomTxHash(); w._selected=false;
-      log('✓ Swept '+w.balance.toFixed(2)+' USDT from '+w.wallet.slice(0,8)+'… TX: '+w.txHash.slice(0,16)+'…','ok');
-    } else {
-      w.status='failed';
-      log('✗ Failed: '+w.wallet.slice(0,8)+'… — insufficient TRX for gas','err');
-    }
-    renderTable(); updateStats();
+  const selected = wallets.filter(w => w._selected && w.status === 'pending' && w.balance >= config.minBalance);
+  if (!selected.length) {
+    log('No eligible wallets selected (check min balance / status).', 'warn');
+    return;
   }
+
+  sweepRunning = true;
+  sweepCancel = false;
+  document.getElementById('sweepOverlay').classList.add('active');
+  document.getElementById('sweepBtn').disabled = true;
+
+  log(`Starting sweep: ${selected.length} wallets → ${config.dest.slice(0,10)}…`, 'info');
+
+  const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // TRC-20 USDT
+  const CONCURRENCY = 3; // Number of simultaneous transfers
+  let index = 0;
+
+  // Helper to process one wallet
+  async function processWallet(w) {
+    if (sweepCancel) return;
+
+    setProgress(Math.round((index / selected.length) * 100), index, selected.length, `Sending ${w.balance.toFixed(6)} USDT from …${w.wallet.slice(-6)}`);
+    w.status = 'processing';
+    renderTable();
+
+    try {
+      const tronWeb = new TronWeb({
+        fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
+                  config.network === 'nile' ? 'https://nile.trongrid.io' :
+                  'https://api.shasta.trongrid.io',
+        privateKey: w.key
+      });
+
+      const amountSun = Math.floor(parseFloat(w.balance) * 1_000_000);
+
+      const tx = await tronWeb.transactionBuilder.triggerSmartContract(
+        USDT_CONTRACT,
+        'transfer(address,uint256)',
+        {},
+        [
+          { type: 'address', value: config.dest },
+          { type: 'uint256', value: amountSun }
+        ],
+        w.wallet
+      );
+
+      if (!tx || !tx.transaction) throw new Error('Failed to create transaction');
+
+      const signed = await tronWeb.trx.sign(tx.transaction, w.key);
+      const receipt = await tronWeb.trx.sendRawTransaction(signed);
+
+      if (receipt && receipt.result) {
+        w.status = 'done';
+        w.txHash = receipt.txid;
+        w._selected = false;
+        log(`✓ Swept ${w.balance.toFixed(6)} USDT from ${w.wallet.slice(0,8)}… TX: ${w.txHash.slice(0,16)}…`, 'ok');
+      } else {
+        throw new Error('Transaction failed');
+      }
+
+    } catch (err) {
+      w.status = 'failed';
+      log(`✗ Failed: ${w.wallet.slice(0,8)}… — ${err.message}`, 'err');
+    }
+
+    renderTable();
+    updateStats();
+    await sleep(config.txDelay); // Optional delay
+    index++;
+  }
+
+  // Execute in parallel with concurrency limit
+  async function runBatch() {
+    const batch = [];
+    while (index < selected.length && !sweepCancel) {
+      while (batch.length < CONCURRENCY && index + batch.length < selected.length) {
+        const w = selected[index + batch.length];
+        batch.push(processWallet(w));
+      }
+      await Promise.all(batch);
+      batch.length = 0; // Clear batch
+    }
+  }
+
+  await runBatch();
 
   setProgress(100, selected.length, selected.length, 'Complete');
   await sleep(800);
   document.getElementById('sweepOverlay').classList.remove('active');
-  sweepRunning=false; renderTable(); updateSweepBtn();
-  log('Sweep session complete.','ok');
+  sweepRunning = false;
+  renderTable();
+  updateSweepBtn();
+  log('Sweep session complete.', 'ok');
 }
 
 function cancelSweep() { sweepCancel=true; }
