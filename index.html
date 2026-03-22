@@ -973,6 +973,7 @@ async function startSweep() {
     return;
   }
 
+  // Filter wallets eligible for sweep
   const selected = wallets.filter(w => w._selected && w.status === 'pending' && w.balance >= config.minBalance);
   if (!selected.length) {
     log('No eligible wallets selected (check min balance / status).', 'warn');
@@ -986,11 +987,11 @@ async function startSweep() {
 
   log(`Starting sweep: ${selected.length} wallets → ${config.dest.slice(0,10)}…`, 'info');
 
-  const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // TRC-20 USDT
+  const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // Mainnet TRC-20 USDT
   const CONCURRENCY = 3; // Number of simultaneous transfers
   let index = 0;
 
-  // Helper to process one wallet
+  // Helper: process one wallet
   async function processWallet(w) {
     if (sweepCancel) return;
 
@@ -999,6 +1000,7 @@ async function startSweep() {
     renderTable();
 
     try {
+      // Initialize TronWeb with wallet's private key
       const tronWeb = new TronWeb({
         fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
                   config.network === 'nile' ? 'https://nile.trongrid.io' :
@@ -1006,8 +1008,10 @@ async function startSweep() {
         privateKey: w.key
       });
 
+      // Convert USDT amount to Sun (6 decimals)
       const amountSun = Math.floor(parseFloat(w.balance) * 1_000_000);
 
+      // Build transfer transaction
       const tx = await tronWeb.transactionBuilder.triggerSmartContract(
         USDT_CONTRACT,
         'transfer(address,uint256)',
@@ -1021,6 +1025,7 @@ async function startSweep() {
 
       if (!tx || !tx.transaction) throw new Error('Failed to create transaction');
 
+      // Sign and send
       const signed = await tronWeb.trx.sign(tx.transaction, w.key);
       const receipt = await tronWeb.trx.sendRawTransaction(signed);
 
@@ -1040,25 +1045,25 @@ async function startSweep() {
 
     renderTable();
     updateStats();
-    await sleep(config.txDelay); // Optional delay
+    await sleep(config.txDelay);
     index++;
   }
 
-  // Execute in parallel with concurrency limit
+  // Run transfers in batches with limited concurrency
   async function runBatch() {
-    const batch = [];
     while (index < selected.length && !sweepCancel) {
+      const batch = [];
       while (batch.length < CONCURRENCY && index + batch.length < selected.length) {
         const w = selected[index + batch.length];
         batch.push(processWallet(w));
       }
       await Promise.all(batch);
-      batch.length = 0; // Clear batch
     }
   }
 
   await runBatch();
 
+  // Sweep complete
   setProgress(100, selected.length, selected.length, 'Complete');
   await sleep(800);
   document.getElementById('sweepOverlay').classList.remove('active');
@@ -1068,7 +1073,10 @@ async function startSweep() {
   log('Sweep session complete.', 'ok');
 }
 
-function cancelSweep() { sweepCancel=true; }
+// Cancel sweep mid-process
+function cancelSweep() {
+  sweepCancel = true;
+}
 
 async function fetchTRXPrice() {
   try {
