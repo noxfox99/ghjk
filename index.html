@@ -1,637 +1,555 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>USDT Sweep — Treasury Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #080b10;
-    --surface: #0e1219;
-    --surface2: #141820;
-    --border: #1e2530;
-    --accent: #00e5a0;
-    --accent2: #00b8ff;
-    --warn: #ffb700;
-    --danger: #ff4560;
-    --text: #e8edf5;
-    --muted: #5a6478;
-    --mono: 'Space Mono', monospace;
-    --sans: 'Syne', sans-serif;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
 
-- { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-background: var(–bg);
-color: var(–text);
-font-family: var(–sans);
-min-height: 100vh;
-overflow-x: hidden;
+  background: #080b10;
+  color: #e8edf5;
+  font-family: 'Syne', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Grid noise texture */
 body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image:
-linear-gradient(rgba(0,229,160,0.015) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,229,160,0.015) 1px, transparent 1px);
-background-size: 40px 40px;
-pointer-events: none;
-z-index: 0;
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,160,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,160,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .glow-orb {
-position: fixed;
-width: 600px; height: 600px;
-border-radius: 50%;
-background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
-top: -200px; right: -100px;
-pointer-events: none;
-z-index: 0;
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+  top: -200px; right: -100px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* Layout */
 .shell {
-position: relative;
-z-index: 1;
-max-width: 1280px;
-margin: 0 auto;
-padding: 0 24px 80px;
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
 }
 
-/* Header */
 header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 28px 0 32px;
-border-bottom: 1px solid var(–border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0 32px;
+  border-bottom: 1px solid #1e2530;
 }
 
-.logo {
-display: flex;
-align-items: center;
-gap: 12px;
-}
+.logo { display: flex; align-items: center; gap: 12px; }
 
 .logo-icon {
-width: 38px; height: 38px;
-background: linear-gradient(135deg, var(–accent), var(–accent2));
-border-radius: 10px;
-display: flex; align-items: center; justify-content: center;
-font-size: 18px;
-box-shadow: 0 0 20px rgba(0,229,160,0.3);
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, #00e5a0, #00b8ff);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 20px rgba(0,229,160,0.3);
 }
 
-.logo-text {
-font-size: 18px;
-font-weight: 800;
-letter-spacing: -0.5px;
-}
-
-.logo-text span { color: var(–accent); }
+.logo-text { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: #e8edf5; }
+.logo-text span { color: #00e5a0; }
 
 .header-meta {
-font-family: var(–mono);
-font-size: 11px;
-color: var(–muted);
-text-align: right;
-line-height: 1.7;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 11px;
+  color: #5a6478;
+  text-align: right;
+  line-height: 1.7;
 }
 
-.header-meta .net-badge {
-display: inline-block;
-background: rgba(0,229,160,0.1);
-color: var(–accent);
-border: 1px solid rgba(0,229,160,0.25);
-border-radius: 4px;
-padding: 2px 8px;
-font-size: 10px;
-letter-spacing: 1px;
+.net-badge {
+  display: inline-block;
+  background: rgba(0,229,160,0.1);
+  color: #00e5a0;
+  border: 1px solid rgba(0,229,160,0.25);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 
-/* Stats row */
 .stats-row {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 16px;
-margin: 32px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 32px 0;
 }
 
 .stat-card {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 14px;
-padding: 20px 22px;
-position: relative;
-overflow: hidden;
-transition: border-color 0.2s;
+  background: #0e1219;
+  border: 1px solid #1e2530;
+  border-radius: 14px;
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
 }
 
 .stat-card:hover { border-color: rgba(0,229,160,0.3); }
 
 .stat-card::after {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 2px;
-background: linear-gradient(90deg, var(–accent), transparent);
-opacity: 0.5;
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #00e5a0, transparent);
+  opacity: 0.5;
 }
 
 .stat-label {
-font-size: 10px;
-letter-spacing: 1.5px;
-text-transform: uppercase;
-color: var(–muted);
-margin-bottom: 10px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #5a6478;
+  margin-bottom: 10px;
 }
 
 .stat-value {
-font-family: var(–mono);
-font-size: 26px;
-font-weight: 700;
-color: var(–text);
-line-height: 1;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  color: #e8edf5;
+  line-height: 1;
 }
 
-.stat-value.green { color: var(–accent); }
-.stat-value.blue  { color: var(–accent2); }
-.stat-value.warn  { color: var(–warn); }
+.stat-value.green { color: #00e5a0; }
+.stat-value.blue  { color: #00b8ff; }
+.stat-value.warn  { color: #ffb700; }
 
 .stat-sub {
-font-family: var(–mono);
-font-size: 11px;
-color: var(–muted);
-margin-top: 6px;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 11px;
+  color: #5a6478;
+  margin-top: 6px;
 }
 
-/* Controls panel */
 .controls-panel {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 16px;
-padding: 24px 28px;
-margin-bottom: 24px;
-display: flex;
-gap: 20px;
-align-items: flex-end;
-flex-wrap: wrap;
+  background: #0e1219;
+  border: 1px solid #1e2530;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .field-group {
-display: flex;
-flex-direction: column;
-gap: 7px;
-flex: 1;
-min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+  min-width: 200px;
 }
 
 .field-label {
-font-size: 10px;
-letter-spacing: 1.5px;
-text-transform: uppercase;
-color: var(–muted);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #5a6478;
 }
 
 input, select {
-background: var(–bg);
-border: 1px solid var(–border);
-border-radius: 8px;
-color: var(–text);
-font-family: var(–mono);
-font-size: 12px;
-padding: 10px 14px;
-outline: none;
-transition: border-color 0.2s, box-shadow 0.2s;
-width: 100%;
+  background: #080b10;
+  border: 1px solid #1e2530;
+  border-radius: 8px;
+  color: #e8edf5;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 12px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
 }
 
 input:focus, select:focus {
-border-color: rgba(0,229,160,0.4);
-box-shadow: 0 0 0 3px rgba(0,229,160,0.06);
+  border-color: rgba(0,229,160,0.4);
+  box-shadow: 0 0 0 3px rgba(0,229,160,0.06);
 }
 
-select option { background: #141820; }
+select option { background: #141820; color: #e8edf5; }
 
 .btn {
-font-family: var(–sans);
-font-size: 13px;
-font-weight: 600;
-border: none;
-border-radius: 8px;
-padding: 10px 20px;
-cursor: pointer;
-transition: all 0.2s;
-white-space: nowrap;
+  font-family: 'Syne', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .btn-primary {
-background: var(–accent);
-color: #000;
-box-shadow: 0 0 20px rgba(0,229,160,0.25);
+  background: #00e5a0;
+  color: #000000;
+  box-shadow: 0 0 20px rgba(0,229,160,0.25);
 }
 
 .btn-primary:hover {
-background: #00ffb3;
-box-shadow: 0 0 30px rgba(0,229,160,0.4);
-transform: translateY(-1px);
+  background: #00ffb3;
+  box-shadow: 0 0 30px rgba(0,229,160,0.4);
+  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
-opacity: 0.4;
-cursor: not-allowed;
-transform: none;
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-ghost {
-background: transparent;
-color: var(–muted);
-border: 1px solid var(–border);
+  background: transparent;
+  color: #5a6478;
+  border: 1px solid #1e2530;
 }
 
 .btn-ghost:hover {
-border-color: rgba(0,229,160,0.3);
-color: var(–text);
+  border-color: rgba(0,229,160,0.3);
+  color: #e8edf5;
 }
 
 .btn-danger {
-background: rgba(255,69,96,0.12);
-color: var(–danger);
-border: 1px solid rgba(255,69,96,0.25);
+  background: rgba(255,69,96,0.12);
+  color: #ff4560;
+  border: 1px solid rgba(255,69,96,0.25);
 }
 
-.btn-danger:hover {
-background: rgba(255,69,96,0.2);
-}
+.btn-danger:hover { background: rgba(255,69,96,0.2); }
 
-/* Table section */
 .section-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
 .section-title {
-font-size: 13px;
-font-weight: 600;
-letter-spacing: 1px;
-text-transform: uppercase;
-color: var(–muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5a6478;
 }
 
 .section-actions { display: flex; gap: 10px; }
 
 .table-wrap {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 16px;
-overflow: hidden;
+  background: #0e1219;
+  border: 1px solid #1e2530;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-table {
-width: 100%;
-border-collapse: collapse;
-font-family: var(–mono);
-font-size: 12px;
-}
-
-thead tr {
-border-bottom: 1px solid var(–border);
-}
-
+table { width: 100%; border-collapse: collapse; font-family: 'Space Mono', 'Courier New', monospace; font-size: 12px; }
+thead tr { border-bottom: 1px solid #1e2530; }
 thead th {
-padding: 14px 18px;
-text-align: left;
-font-size: 10px;
-letter-spacing: 1.5px;
-text-transform: uppercase;
-color: var(–muted);
-font-weight: 400;
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #5a6478;
+  font-weight: 400;
 }
 
-tbody tr {
-border-bottom: 1px solid rgba(30,37,48,0.6);
-transition: background 0.15s;
-}
-
+tbody tr { border-bottom: 1px solid rgba(30,37,48,0.6); transition: background 0.15s; }
 tbody tr:last-child { border-bottom: none; }
-
 tbody tr:hover { background: rgba(0,229,160,0.03); }
-
 tbody tr.selected { background: rgba(0,229,160,0.06); }
+td { padding: 13px 18px; vertical-align: middle; }
 
-td {
-padding: 13px 18px;
-vertical-align: middle;
-}
-
-.td-check input[type=checkbox] {
-width: 15px; height: 15px;
-accent-color: var(–accent);
-cursor: pointer;
-}
-
-.addr {
-color: var(–accent2);
-font-size: 11px;
-}
-
-.amount {
-color: var(–accent);
-font-weight: 700;
-}
-
-.amount.zero { color: var(–muted); }
+.addr { color: #00b8ff; font-size: 11px; }
+.amount { color: #00e5a0; font-weight: 700; }
+.amount.zero { color: #5a6478; }
 
 .badge {
-display: inline-flex;
-align-items: center;
-gap: 5px;
-padding: 3px 10px;
-border-radius: 20px;
-font-size: 10px;
-letter-spacing: 0.5px;
-font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
-.badge-dot {
-width: 6px; height: 6px;
-border-radius: 50%;
-}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-.badge.pending  { background: rgba(255,183,0,0.12);  color: var(–warn);   border: 1px solid rgba(255,183,0,0.2); }
-.badge.pending .badge-dot  { background: var(–warn); box-shadow: 0 0 6px var(–warn); }
+.badge.pending    { background: rgba(255,183,0,0.12);  color: #ffb700; border: 1px solid rgba(255,183,0,0.2); }
+.badge.pending .badge-dot { background: #ffb700; box-shadow: 0 0 6px #ffb700; }
 
-.badge.done     { background: rgba(0,229,160,0.1);   color: var(–accent); border: 1px solid rgba(0,229,160,0.2); }
-.badge.done .badge-dot     { background: var(–accent); }
+.badge.done       { background: rgba(0,229,160,0.1);   color: #00e5a0; border: 1px solid rgba(0,229,160,0.2); }
+.badge.done .badge-dot    { background: #00e5a0; }
 
-.badge.processing { background: rgba(0,184,255,0.1); color: var(–accent2); border: 1px solid rgba(0,184,255,0.2); animation: pulse-badge 1.5s infinite; }
-.badge.processing .badge-dot { background: var(–accent2); }
+.badge.processing { background: rgba(0,184,255,0.1);   color: #00b8ff; border: 1px solid rgba(0,184,255,0.2); animation: pulse-badge 1.5s infinite; }
+.badge.processing .badge-dot { background: #00b8ff; }
 
-.badge.failed   { background: rgba(255,69,96,0.1);   color: var(–danger); border: 1px solid rgba(255,69,96,0.2); }
-.badge.failed .badge-dot   { background: var(–danger); }
+.badge.failed     { background: rgba(255,69,96,0.1);   color: #ff4560; border: 1px solid rgba(255,69,96,0.2); }
+.badge.failed .badge-dot  { background: #ff4560; }
 
 @keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
-.tx-hash {
-color: var(–muted);
-font-size: 11px;
-cursor: pointer;
-text-decoration: underline;
-text-decoration-style: dotted;
-}
+.tx-hash { color: #5a6478; font-size: 11px; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; }
+.tx-hash:hover { color: #00b8ff; }
 
-.tx-hash:hover { color: var(–accent2); }
-
-/* Fee estimate bar */
 .fee-bar {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 12px;
-padding: 16px 22px;
-margin-bottom: 20px;
-display: flex;
-align-items: center;
-gap: 28px;
-flex-wrap: wrap;
+  background: #0e1219;
+  border: 1px solid #1e2530;
+  border-radius: 12px;
+  padding: 16px 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
 }
 
-.fee-item {
-display: flex;
-flex-direction: column;
-gap: 3px;
-}
+.fee-item { display: flex; flex-direction: column; gap: 3px; }
 
 .fee-item-label {
-font-size: 10px;
-letter-spacing: 1px;
-text-transform: uppercase;
-color: var(–muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5a6478;
 }
 
 .fee-item-val {
-font-family: var(–mono);
-font-size: 14px;
-font-weight: 700;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8edf5;
 }
 
-.fee-item-val.green { color: var(–accent); }
-.fee-item-val.blue  { color: var(–accent2); }
+.fee-item-val.green { color: #00e5a0; }
+.fee-item-val.blue  { color: #00b8ff; }
+.fee-sep { width: 1px; height: 30px; background: #1e2530; }
 
-.fee-sep { width: 1px; height: 30px; background: var(–border); }
-
-/* Import area */
 .import-zone {
-border: 2px dashed var(–border);
-border-radius: 12px;
-padding: 30px;
-text-align: center;
-cursor: pointer;
-transition: all 0.2s;
-margin-bottom: 20px;
+  border: 2px dashed #1e2530;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
 }
 
 .import-zone:hover, .import-zone.drag-over {
-border-color: rgba(0,229,160,0.4);
-background: rgba(0,229,160,0.03);
+  border-color: rgba(0,229,160,0.4);
+  background: rgba(0,229,160,0.03);
 }
 
 .import-zone-icon { font-size: 28px; margin-bottom: 8px; }
-.import-zone-text { font-size: 13px; color: var(–muted); }
-.import-zone-text span { color: var(–accent); }
+.import-zone-text { font-size: 13px; color: #5a6478; }
+.import-zone-text span { color: #00e5a0; }
 
-/* Log panel */
 .log-panel {
-background: var(–bg);
-border: 1px solid var(–border);
-border-radius: 12px;
-padding: 16px;
-margin-top: 24px;
-height: 160px;
-overflow-y: auto;
-font-family: var(–mono);
-font-size: 11px;
-line-height: 1.8;
+  background: #080b10;
+  border: 1px solid #1e2530;
+  border-radius: 12px;
+  padding: 16px;
+  height: 320px;
+  overflow-y: auto;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.8;
 }
 
 .log-panel::-webkit-scrollbar { width: 4px; }
 .log-panel::-webkit-scrollbar-track { background: transparent; }
-.log-panel::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+.log-panel::-webkit-scrollbar-thumb { background: #1e2530; border-radius: 2px; }
 
 .log-entry { display: flex; gap: 12px; }
-.log-time { color: var(–muted); min-width: 64px; }
-.log-msg.ok   { color: var(–accent); }
-.log-msg.info { color: var(–accent2); }
-.log-msg.err  { color: var(–danger); }
-.log-msg.warn { color: var(–warn); }
+.log-time { color: #5a6478; min-width: 64px; }
+.log-msg.ok   { color: #00e5a0; }
+.log-msg.info { color: #00b8ff; }
+.log-msg.err  { color: #ff4560; }
+.log-msg.warn { color: #ffb700; }
 
-/* Progress overlay */
 .sweep-progress {
-display: none;
-position: fixed;
-inset: 0;
-background: rgba(8,11,16,0.85);
-backdrop-filter: blur(6px);
-z-index: 100;
-align-items: center;
-justify-content: center;
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8,11,16,0.85);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
 }
 
 .sweep-progress.active { display: flex; }
 
 .progress-card {
-background: var(–surface2);
-border: 1px solid var(–border);
-border-radius: 20px;
-padding: 40px 48px;
-width: 420px;
-text-align: center;
+  background: #141820;
+  border: 1px solid #1e2530;
+  border-radius: 20px;
+  padding: 40px 48px;
+  width: 420px;
+  text-align: center;
 }
 
-.progress-title {
-font-size: 18px;
-font-weight: 800;
-margin-bottom: 6px;
-}
+.progress-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #e8edf5; }
 
 .progress-sub {
-font-family: var(–mono);
-font-size: 11px;
-color: var(–muted);
-margin-bottom: 28px;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 11px;
+  color: #5a6478;
+  margin-bottom: 28px;
 }
 
 .progress-ring-wrap {
-position: relative;
-width: 100px; height: 100px;
-margin: 0 auto 24px;
+  position: relative;
+  width: 100px; height: 100px;
+  margin: 0 auto 24px;
 }
 
-.progress-ring {
-transform: rotate(-90deg);
-}
-
-.progress-ring-bg { fill: none; stroke: var(–border); stroke-width: 6; }
+.progress-ring { transform: rotate(-90deg); }
+.progress-ring-bg { fill: none; stroke: #1e2530; stroke-width: 6; }
 
 .progress-ring-fill {
-fill: none;
-stroke: var(–accent);
-stroke-width: 6;
-stroke-linecap: round;
-stroke-dasharray: 283;
-stroke-dashoffset: 283;
-transition: stroke-dashoffset 0.4s ease;
-filter: drop-shadow(0 0 6px var(–accent));
+  fill: none;
+  stroke: #00e5a0;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  transition: stroke-dashoffset 0.4s ease;
+  filter: drop-shadow(0 0 6px #00e5a0);
 }
 
 .progress-count {
-position: absolute;
-inset: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-font-family: var(–mono);
-font-size: 20px;
-font-weight: 700;
-color: var(–accent);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: #00e5a0;
 }
 
 .progress-status {
-font-family: var(–mono);
-font-size: 12px;
-color: var(–muted);
-min-height: 20px;
-margin-bottom: 20px;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 12px;
+  color: #5a6478;
+  min-height: 20px;
+  margin-bottom: 20px;
 }
 
 .progress-bar-track {
-background: var(–border);
-border-radius: 4px;
-height: 4px;
-overflow: hidden;
-margin-bottom: 24px;
+  background: #1e2530;
+  border-radius: 4px;
+  height: 4px;
+  overflow: hidden;
+  margin-bottom: 24px;
 }
 
 .progress-bar-fill {
-height: 100%;
-background: linear-gradient(90deg, var(–accent), var(–accent2));
-border-radius: 4px;
-width: 0%;
-transition: width 0.4s ease;
-box-shadow: 0 0 10px rgba(0,229,160,0.4);
+  height: 100%;
+  background: linear-gradient(90deg, #00e5a0, #00b8ff);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(0,229,160,0.4);
 }
 
-/* Tabs */
 .tabs {
-display: flex;
-gap: 4px;
-margin-bottom: 20px;
-background: var(–surface);
-padding: 4px;
-border-radius: 10px;
-border: 1px solid var(–border);
-width: fit-content;
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: #0e1219;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #1e2530;
+  width: fit-content;
 }
 
 .tab {
-font-family: var(–sans);
-font-size: 12px;
-font-weight: 600;
-padding: 7px 18px;
-border-radius: 7px;
-cursor: pointer;
-color: var(–muted);
-border: none;
-background: transparent;
-transition: all 0.2s;
-letter-spacing: 0.3px;
+  font-family: 'Syne', 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: #5a6478;
+  border: none;
+  background: transparent;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
 }
 
 .tab.active {
-background: var(–surface2);
-color: var(–text);
-box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  background: #141820;
+  color: #e8edf5;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3);
 }
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-/* Responsive */
-@media (max-width: 900px) {
-.stats-row { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 600px) {
-.stats-row { grid-template-columns: 1fr 1fr; }
-.controls-panel { flex-direction: column; }
-}
-
-/* Animations */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.fade-in { animation: fadeIn 0.4s ease forwards; }
-
 .empty-state {
-text-align: center;
-padding: 60px 20px;
-color: var(–muted);
-font-family: var(–mono);
-font-size: 12px;
-line-height: 2;
+  text-align: center;
+  padding: 60px 20px;
+  color: #5a6478;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 2;
 }
-</style>
 
+.info-box {
+  background: #0e1219;
+  border: 1px solid #1e2530;
+  border-radius: 12px;
+  padding: 22px 26px;
+  margin-top: 4px;
+}
+
+.info-box-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #5a6478;
+  margin-bottom: 14px;
+}
+
+.info-line {
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 12px;
+  color: #e8edf5;
+  line-height: 2.2;
+}
+
+@media (max-width: 900px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .stats-row { grid-template-columns: 1fr 1fr; } .controls-panel { flex-direction: column; } }
+</style>
 </head>
 <body>
 
 <div class="glow-orb"></div>
-
-<!-- Sweep progress overlay -->
 
 <div class="sweep-progress" id="sweepOverlay">
   <div class="progress-card">
@@ -654,14 +572,12 @@ line-height: 2;
 
 <div class="shell">
 
-  <!-- Header -->
-
   <header>
     <div class="logo">
       <div class="logo-icon">⬡</div>
       <div>
         <div class="logo-text">SWEEP<span>OPS</span></div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--mono)">USDT Treasury Dashboard</div>
+        <div style="font-size:10px;color:#5a6478;margin-top:2px;font-family:'Space Mono','Courier New',monospace">USDT Treasury Dashboard</div>
       </div>
     </div>
     <div class="header-meta">
@@ -669,8 +585,6 @@ line-height: 2;
       <span id="clock">–</span>
     </div>
   </header>
-
-  <!-- Stats row -->
 
   <div class="stats-row">
     <div class="stat-card">
@@ -681,12 +595,12 @@ line-height: 2;
     <div class="stat-card">
       <div class="stat-label">Pending</div>
       <div class="stat-value warn" id="statPending">0</div>
-      <div class="stat-sub" id="statPendingSub">awaiting sweep</div>
+      <div class="stat-sub">awaiting sweep</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Swept (Done)</div>
       <div class="stat-value green" id="statDone">0</div>
-      <div class="stat-sub" id="statDoneSub">–</div>
+      <div class="stat-sub">completed</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Total Swept USDT</div>
@@ -695,8 +609,6 @@ line-height: 2;
     </div>
   </div>
 
-  <!-- Tabs -->
-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('wallets', this)">Wallets</button>
     <button class="tab" onclick="switchTab('config', this)">Config</button>
@@ -704,91 +616,81 @@ line-height: 2;
   </div>
 
   <!-- WALLETS TAB -->
-
   <div class="tab-content active" id="tab-wallets">
 
-```
-<!-- Import zone -->
-<div class="import-zone" id="importZone" onclick="document.getElementById('csvInput').click()"
-     ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-  <div class="import-zone-icon">📋</div>
-  <div class="import-zone-text">Drop CSV / paste data — or <span>click to browse</span></div>
-  <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--mono)">
-    Expected columns: wallet, private_key, balance, status
-  </div>
-</div>
-<input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleFile(event)" />
+    <div class="import-zone" id="importZone" onclick="document.getElementById('csvInput').click()"
+         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <div class="import-zone-icon">📋</div>
+      <div class="import-zone-text">Drop CSV or <span>click to browse</span></div>
+      <div style="font-size:11px;color:#5a6478;margin-top:6px;font-family:'Space Mono','Courier New',monospace">
+        Columns: wallet, private_key, balance, status
+      </div>
+    </div>
+    <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleFile(event)" />
 
-<!-- Fee estimate -->
-<div class="fee-bar">
-  <div class="fee-item">
-    <div class="fee-item-label">Est. Fee / TX</div>
-    <div class="fee-item-val green">~6–7 TRX</div>
-  </div>
-  <div class="fee-sep"></div>
-  <div class="fee-item">
-    <div class="fee-item-label">TRX Price</div>
-    <div class="fee-item-val blue" id="trxPrice">–</div>
-  </div>
-  <div class="fee-sep"></div>
-  <div class="fee-item">
-    <div class="fee-item-label">Selected</div>
-    <div class="fee-item-val" id="feeSelected">0 wallets</div>
-  </div>
-  <div class="fee-sep"></div>
-  <div class="fee-item">
-    <div class="fee-item-label">Est. Total Fee</div>
-    <div class="fee-item-val" id="feeTotalEst">0.00 TRX</div>
-  </div>
-  <div style="margin-left:auto;display:flex;gap:10px;">
-    <button class="btn btn-ghost" onclick="selectAll()" style="font-size:12px;padding:8px 14px;">Select Pending</button>
-    <button class="btn btn-primary" id="sweepBtn" onclick="startSweep()" disabled>⚡ Sweep Selected</button>
-  </div>
-</div>
+    <div class="fee-bar">
+      <div class="fee-item">
+        <div class="fee-item-label">Est. Fee / TX</div>
+        <div class="fee-item-val green">~6–7 TRX</div>
+      </div>
+      <div class="fee-sep"></div>
+      <div class="fee-item">
+        <div class="fee-item-label">TRX Price</div>
+        <div class="fee-item-val blue" id="trxPrice">–</div>
+      </div>
+      <div class="fee-sep"></div>
+      <div class="fee-item">
+        <div class="fee-item-label">Selected</div>
+        <div class="fee-item-val" id="feeSelected">0 wallets</div>
+      </div>
+      <div class="fee-sep"></div>
+      <div class="fee-item">
+        <div class="fee-item-label">Est. Total Fee</div>
+        <div class="fee-item-val" id="feeTotalEst">0.0 TRX</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+        <button class="btn btn-ghost" onclick="selectAll()" style="font-size:12px;padding:8px 14px;">Select Pending</button>
+        <button class="btn btn-primary" id="sweepBtn" onclick="startSweep()" disabled>⚡ Sweep Selected</button>
+      </div>
+    </div>
 
-<!-- Table -->
-<div class="section-header">
-  <div class="section-title">Wallet Table — <span id="tableCount" style="color:var(--text)">0 entries</span></div>
-  <div class="section-actions">
-    <button class="btn btn-ghost" onclick="addSampleData()" style="font-size:11px;padding:7px 14px;">+ Add Demo Data</button>
-    <button class="btn btn-danger" onclick="clearTable()" style="font-size:11px;padding:7px 14px;">Clear</button>
-  </div>
-</div>
+    <div class="section-header">
+      <div class="section-title">Wallet Table — <span id="tableCount" style="color:#e8edf5">0 entries</span></div>
+      <div class="section-actions">
+        <button class="btn btn-ghost" onclick="addSampleData()" style="font-size:11px;padding:7px 14px;">+ Demo Data</button>
+        <button class="btn btn-danger" onclick="clearTable()" style="font-size:11px;padding:7px 14px;">Clear</button>
+      </div>
+    </div>
 
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th class="td-check"><input type="checkbox" id="checkAll" onchange="toggleAll(this)" /></th>
-        <th>#</th>
-        <th>Wallet Address</th>
-        <th>Balance (USDT)</th>
-        <th>Status</th>
-        <th>TX Hash</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="walletTableBody">
-      <tr>
-        <td colspan="7">
-          <div class="empty-state">
-            No wallets loaded.<br/>Import a CSV or click "Add Demo Data" to get started.
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-```
-
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;padding:14px 18px"><input type="checkbox" id="checkAll" onchange="toggleAll(this)" style="width:15px;height:15px;accent-color:#00e5a0;cursor:pointer" /></th>
+            <th>#</th>
+            <th>Wallet Address</th>
+            <th>Balance (USDT)</th>
+            <th>Status</th>
+            <th>TX Hash</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody id="walletTableBody">
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">No wallets loaded.<br/>Import a CSV or click "+ Demo Data".</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- CONFIG TAB -->
-
   <div class="tab-content" id="tab-config">
     <div class="controls-panel">
       <div class="field-group" style="flex:2">
-        <div class="field-label">Destination Wallet (your treasury address)</div>
+        <div class="field-label">Destination Wallet (treasury address)</div>
         <input type="text" id="destAddr" placeholder="TXxx... — TRC-20 receiving address" />
       </div>
       <div class="field-group">
@@ -810,23 +712,17 @@ line-height: 2;
       <button class="btn btn-primary" onclick="saveConfig()" style="align-self:flex-end">Save Config</button>
     </div>
 
-```
-<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 26px;margin-top:4px;">
-  <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Integration Notes</div>
-  <div style="font-family:var(--mono);font-size:12px;color:var(--text);line-height:2.2;">
-    <div>• This UI drives a <span style="color:var(--accent)">TronWeb</span> backend — connect via the Python/Node sweep worker</div>
-    <div>• TRC-20 USDT contract: <span style="color:var(--accent2)">TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t</span></div>
-    <div>• Each sweep costs <span style="color:var(--accent)">~6–7 TRX</span> in energy/bandwidth (USDT TRC-20 transfer)</div>
-    <div>• Source wallets need <span style="color:var(--warn)">≥ 8–10 TRX</span> for gas before sweeping</div>
-    <div>• Recommended: fund all source wallets with 10 TRX before batch sweep</div>
-  </div>
-</div>
-```
-
+    <div class="info-box">
+      <div class="info-box-label">Integration Notes</div>
+      <div class="info-line">• Connect a <span style="color:#00e5a0">TronWeb</span> backend — replace the simulation block in startSweep() with real TX calls</div>
+      <div class="info-line">• TRC-20 USDT contract: <span style="color:#00b8ff">TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t</span></div>
+      <div class="info-line">• Each sweep costs <span style="color:#00e5a0">~6–7 TRX</span> in energy/bandwidth</div>
+      <div class="info-line">• Source wallets need <span style="color:#ffb700">≥ 8–10 TRX</span> for gas before sweeping</div>
+      <div class="info-line">• Recommended: pre-fund all source wallets with <span style="color:#ffb700">10 TRX</span> before batch sweep</div>
+    </div>
   </div>
 
   <!-- LOG TAB -->
-
   <div class="tab-content" id="tab-log">
     <div class="section-header">
       <div class="section-title">Activity Log</div>
@@ -840,376 +736,290 @@ line-height: 2;
     </div>
   </div>
 
-</div><!-- end shell -->
+</div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────
-let wallets = [];
-let sweepRunning = false;
-let sweepCancel = false;
-let config = {
-  dest: '',
-  minBalance: 1,
-  txDelay: 500,
-  network: 'mainnet'
-};
+var wallets = [];
+var sweepRunning = false;
+var sweepCancel = false;
+var config = { dest: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
 
-// ── Clock ──────────────────────────────────────────────────────────────────
 function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toUTCString().slice(17, 25) + ' UTC';
+  var now = new Date();
+  document.getElementById('clock').textContent = now.toUTCString().slice(17,25) + ' UTC';
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
 function switchTab(name, el) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+  var contents = document.querySelectorAll('.tab-content');
+  for (var i=0;i<contents.length;i++) contents[i].classList.remove('active');
+  var tabs = document.querySelectorAll('.tab');
+  for (var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
 }
 
-// ── Log ────────────────────────────────────────────────────────────────────
-function log(msg, type = 'info') {
-  const panel = document.getElementById('logPanel');
-  const now = new Date().toTimeString().slice(0, 8);
-  const entry = document.createElement('div');
+function log(msg, type) {
+  type = type || 'info';
+  var panel = document.getElementById('logPanel');
+  var now = new Date().toTimeString().slice(0,8);
+  var entry = document.createElement('div');
   entry.className = 'log-entry';
-  entry.innerHTML = `<span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span>`;
+  entry.innerHTML = '<span class="log-time">'+now+'</span><span class="log-msg '+type+'">'+msg+'</span>';
   panel.appendChild(entry);
   panel.scrollTop = panel.scrollHeight;
 }
 
 function clearLog() {
   document.getElementById('logPanel').innerHTML = '';
-  log('Log cleared.', 'info');
+  log('Log cleared.','info');
 }
 
-// ── CSV Import ─────────────────────────────────────────────────────────────
 function handleFile(e) {
-  const file = e.target.files[0];
+  var file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => parseCSV(ev.target.result);
+  var reader = new FileReader();
+  reader.onload = function(ev){ parseCSV(ev.target.result); };
   reader.readAsText(file);
 }
 
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('importZone').classList.add('drag-over');
-}
-
-function handleDragLeave(e) {
-  document.getElementById('importZone').classList.remove('drag-over');
-}
-
+function handleDragOver(e) { e.preventDefault(); document.getElementById('importZone').classList.add('drag-over'); }
+function handleDragLeave(e) { document.getElementById('importZone').classList.remove('drag-over'); }
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('importZone').classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => parseCSV(ev.target.result);
+  var file = e.dataTransfer.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){ parseCSV(ev.target.result); };
   reader.readAsText(file);
 }
 
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) { log('CSV too short or empty.', 'err'); return; }
-  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
-  const iWallet  = headers.findIndex(h => h.includes('wallet') || h.includes('address'));
-  const iKey     = headers.findIndex(h => h.includes('key') || h.includes('private'));
-  const iBalance = headers.findIndex(h => h.includes('balance') || h.includes('amount'));
-  const iStatus  = headers.findIndex(h => h.includes('status'));
-
-  if (iWallet === -1 || iKey === -1) {
-    log('CSV must have "wallet" and "private_key" columns.', 'err');
-    return;
+  var lines = text.trim().split('\n');
+  if (lines.length < 2) { log('CSV too short.','err'); return; }
+  var headers = lines[0].split(',').map(function(h){ return h.trim().toLowerCase().replace(/['"]/g,''); });
+  var iW = -1, iK = -1, iB = -1, iS = -1;
+  for (var i=0;i<headers.length;i++) {
+    if (headers[i].indexOf('wallet')>-1||headers[i].indexOf('address')>-1) iW=i;
+    if (headers[i].indexOf('key')>-1||headers[i].indexOf('private')>-1) iK=i;
+    if (headers[i].indexOf('balance')>-1||headers[i].indexOf('amount')>-1) iB=i;
+    if (headers[i].indexOf('status')>-1) iS=i;
   }
-
-  const newRows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
-    if (!cols[iWallet]) continue;
-    newRows.push({
-      id: Date.now() + i,
-      wallet:  cols[iWallet]  || '',
-      key:     cols[iKey]     || '',
-      balance: parseFloat(cols[iBalance]) || 0,
-      status:  (cols[iStatus] || 'pending').toLowerCase(),
-      txHash:  ''
-    });
+  if (iW===-1||iK===-1) { log('CSV must have "wallet" and "private_key" columns.','err'); return; }
+  var newRows = [];
+  for (var i=1;i<lines.length;i++) {
+    var cols = lines[i].split(',').map(function(c){ return c.trim().replace(/^["']|["']$/g,''); });
+    if (!cols[iW]) continue;
+    newRows.push({ id:Date.now()+i, wallet:cols[iW]||'', key:cols[iK]||'', balance:parseFloat(cols[iB])||0, status:(cols[iS]||'pending').toLowerCase(), txHash:'' });
   }
-
-  wallets = [...wallets, ...newRows];
-  log(`Imported ${newRows.length} wallets from CSV.`, 'ok');
-  renderTable();
-  updateStats();
+  wallets = wallets.concat(newRows);
+  log('Imported '+newRows.length+' wallets from CSV.','ok');
+  renderTable(); updateStats();
 }
 
-// ── Demo Data ──────────────────────────────────────────────────────────────
 function addSampleData() {
-  const sample = [
-    { id: Date.now()+1, wallet:'TXvE5dFzktjhBJZzMdBnYwRbN4vFm1gVwR', key:'demo_key_1...', balance: 42.50, status:'pending', txHash:'' },
-    { id: Date.now()+2, wallet:'TYkNmP3rQ2HhS7LdWcXi6yJfGbUoVaTq9K', key:'demo_key_2...', balance: 118.00, status:'pending', txHash:'' },
-    { id: Date.now()+3, wallet:'TRpD8wKuA4sZj2NqVgBxC5eLmYhFoWt1RP', key:'demo_key_3...', balance: 0.30, status:'pending', txHash:'' },
-    { id: Date.now()+4, wallet:'TBqF9cLvM6tXk3OsUyZe7aHnJrPiGdWm2T', key:'demo_key_4...', balance: 205.75, status:'done', txHash:'abc123def456...' },
-    { id: Date.now()+5, wallet:'TNjG1dRwB8uYl4PtSzAf5bKoQcHiXvEm6N', key:'demo_key_5...', balance: 0.00, status:'failed', txHash:'' },
-    { id: Date.now()+6, wallet:'TKhC2eMxD7vZn5QsRyBg8aLpJuFoWt3AK', key:'demo_key_6...', balance: 67.20, status:'pending', txHash:'' },
-  ];
-  wallets = [...wallets, ...sample];
-  log('Demo data loaded (6 wallets).', 'info');
-  renderTable();
-  updateStats();
-}
-
-// ── Table Render ───────────────────────────────────────────────────────────
-function maskKey(k) {
-  if (!k || k.length < 8) return '••••••••';
-  return k.slice(0, 4) + '••••••••' + k.slice(-3);
+  var t = Date.now();
+  wallets = wallets.concat([
+    {id:t+1,wallet:'TXvE5dFzktjhBJZzMdBnYwRbN4vFm1gVwR',key:'demo_key_1',balance:42.50, status:'pending',txHash:''},
+    {id:t+2,wallet:'TYkNmP3rQ2HhS7LdWcXi6yJfGbUoVaTq9K',key:'demo_key_2',balance:118.00,status:'pending',txHash:''},
+    {id:t+3,wallet:'TRpD8wKuA4sZj2NqVgBxC5eLmYhFoWt1RP',key:'demo_key_3',balance:0.30,  status:'pending',txHash:''},
+    {id:t+4,wallet:'TBqF9cLvM6tXk3OsUyZe7aHnJrPiGdWm2T',key:'demo_key_4',balance:205.75,status:'done',   txHash:'abc123def456abc123def456abc123def456abc123def456abc123def456ab12'},
+    {id:t+5,wallet:'TNjG1dRwB8uYl4PtSzAf5bKoQcHiXvEm6N',key:'demo_key_5',balance:0.00,  status:'failed', txHash:''},
+    {id:t+6,wallet:'TKhC2eMxD7vZn5QsRyBg8aLpJuFoWt3AKx',key:'demo_key_6',balance:67.20, status:'pending',txHash:''},
+  ]);
+  log('Demo data loaded (6 wallets).','info');
+  renderTable(); updateStats();
 }
 
 function truncAddr(a) {
-  if (!a || a.length < 12) return a;
-  return a.slice(0, 6) + '…' + a.slice(-4);
+  if (!a||a.length<12) return a;
+  return a.slice(0,6)+'…'+a.slice(-4);
 }
 
 function statusBadge(s) {
-  const map = {
-    pending: ['pending','●','PENDING'],
-    done: ['done','●','DONE'],
-    processing: ['processing','●','SENDING'],
-    failed: ['failed','●','FAILED'],
+  var badges = {
+    pending:    '<span class="badge pending"><span class="badge-dot"></span>PENDING</span>',
+    done:       '<span class="badge done"><span class="badge-dot"></span>DONE</span>',
+    processing: '<span class="badge processing"><span class="badge-dot"></span>SENDING</span>',
+    failed:     '<span class="badge failed"><span class="badge-dot"></span>FAILED</span>'
   };
-  const [cls, dot, label] = map[s] || map.pending;
-  return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`;
+  return badges[s] || badges.pending;
 }
 
 function renderTable() {
-  const tbody = document.getElementById('walletTableBody');
+  var tbody = document.getElementById('walletTableBody');
   if (!wallets.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">No wallets loaded.<br/>Import a CSV or click "Add Demo Data".</div></td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">No wallets loaded.<br/>Import a CSV or click "+ Demo Data".</div></td></tr>';
     document.getElementById('tableCount').textContent = '0 entries';
     return;
   }
   document.getElementById('tableCount').textContent = wallets.length + ' entries';
-
-  tbody.innerHTML = wallets.map((w, i) => `
-    <tr id="row-${w.id}" class="${w._selected ? 'selected' : ''}">
-      <td class="td-check">
-        <input type="checkbox" ${w._selected ? 'checked' : ''} 
-          ${w.status === 'done' ? 'disabled' : ''}
-          onchange="toggleRow(${w.id}, this)" />
-      </td>
-      <td style="color:var(--muted)">${i+1}</td>
-      <td>
-        <span class="addr" title="${w.wallet}">${truncAddr(w.wallet)}</span>
-      </td>
-      <td class="amount ${w.balance <= 0 ? 'zero' : ''}">${w.balance.toFixed(2)}</td>
-      <td>${statusBadge(w.status)}</td>
-      <td>${w.txHash
-        ? `<span class="tx-hash" onclick="openTx('${w.txHash}')" title="${w.txHash}">${w.txHash.slice(0,12)}…</span>`
-        : '<span style="color:var(--muted)">—</span>'
-      }</td>
-      <td>
-        <button class="btn btn-ghost" onclick="removeSingle(${w.id})"
-          style="font-size:10px;padding:4px 10px;color:var(--danger);border-color:rgba(255,69,96,0.2)">
-          ✕
-        </button>
-      </td>
-    </tr>
-  `).join('');
-
+  var html = '';
+  for (var i=0;i<wallets.length;i++) {
+    var w = wallets[i];
+    var txCell = w.txHash
+      ? '<span class="tx-hash" onclick="openTx(\''+w.txHash+'\')" title="'+w.txHash+'">'+w.txHash.slice(0,12)+'…</span>'
+      : '<span style="color:#5a6478">—</span>';
+    html += '<tr id="row-'+w.id+'" class="'+(w._selected?'selected':'')+'">'
+      +'<td style="padding:13px 18px"><input type="checkbox"'+(w._selected?' checked':'')+(w.status==='done'?' disabled':'')
+      +' onchange="toggleRow('+w.id+', this)" style="width:15px;height:15px;accent-color:#00e5a0;cursor:pointer"/></td>'
+      +'<td style="padding:13px 18px;color:#5a6478">'+(i+1)+'</td>'
+      +'<td style="padding:13px 18px"><span class="addr" title="'+w.wallet+'">'+truncAddr(w.wallet)+'</span></td>'
+      +'<td style="padding:13px 18px" class="amount'+(w.balance<=0?' zero':'')+'">'+w.balance.toFixed(2)+'</td>'
+      +'<td style="padding:13px 18px">'+statusBadge(w.status)+'</td>'
+      +'<td style="padding:13px 18px">'+txCell+'</td>'
+      +'<td style="padding:13px 18px"><button class="btn btn-ghost" onclick="removeSingle('+w.id+')" style="font-size:10px;padding:4px 10px;color:#ff4560;border-color:rgba(255,69,96,0.2)">✕</button></td>'
+      +'</tr>';
+  }
+  tbody.innerHTML = html;
   updateSweepBtn();
 }
 
 function updateStats() {
-  const total   = wallets.length;
-  const pending = wallets.filter(w => w.status === 'pending').length;
-  const done    = wallets.filter(w => w.status === 'done').length;
-  const swept   = wallets.filter(w => w.status === 'done').reduce((s,w) => s + w.balance, 0);
-
-  document.getElementById('statTotal').textContent   = total;
-  document.getElementById('statTotalSub').textContent = `${done} swept, ${pending} pending`;
+  var total=wallets.length, pending=0, done=0, swept=0;
+  for (var i=0;i<wallets.length;i++) {
+    if (wallets[i].status==='pending') pending++;
+    if (wallets[i].status==='done') { done++; swept+=wallets[i].balance; }
+  }
+  document.getElementById('statTotal').textContent    = total;
+  document.getElementById('statTotalSub').textContent = done+' swept, '+pending+' pending';
   document.getElementById('statPending').textContent  = pending;
   document.getElementById('statDone').textContent     = done;
   document.getElementById('statSwept').textContent    = swept.toFixed(2);
 }
 
-// ── Row selection ──────────────────────────────────────────────────────────
 function toggleRow(id, cb) {
-  const w = wallets.find(x => x.id === id);
-  if (w) w._selected = cb.checked;
-  const tr = document.getElementById('row-' + id);
-  if (tr) tr.classList.toggle('selected', cb.checked);
-  updateSweepBtn();
-  updateFeeBar();
+  for (var i=0;i<wallets.length;i++) { if(wallets[i].id===id){ wallets[i]._selected=cb.checked; break; } }
+  var tr = document.getElementById('row-'+id);
+  if (tr) { if(cb.checked) tr.classList.add('selected'); else tr.classList.remove('selected'); }
+  updateSweepBtn(); updateFeeBar();
 }
 
 function toggleAll(masterCb) {
-  wallets.forEach(w => {
-    if (w.status !== 'done') w._selected = masterCb.checked;
-  });
-  renderTable();
-  updateFeeBar();
+  for (var i=0;i<wallets.length;i++) { if(wallets[i].status!=='done') wallets[i]._selected=masterCb.checked; }
+  renderTable(); updateFeeBar();
 }
 
 function selectAll() {
-  wallets.forEach(w => {
-    if (w.status === 'pending') w._selected = true;
-  });
-  renderTable();
-  updateFeeBar();
+  for (var i=0;i<wallets.length;i++) { if(wallets[i].status==='pending') wallets[i]._selected=true; }
+  renderTable(); updateFeeBar();
 }
 
 function updateSweepBtn() {
-  const sel = wallets.filter(w => w._selected && w.status !== 'done').length;
-  const btn = document.getElementById('sweepBtn');
-  btn.disabled = sel === 0 || sweepRunning;
-  btn.textContent = sel > 0 ? `⚡ Sweep ${sel} Wallets` : '⚡ Sweep Selected';
+  var sel=0;
+  for (var i=0;i<wallets.length;i++) { if(wallets[i]._selected&&wallets[i].status!=='done') sel++; }
+  var btn = document.getElementById('sweepBtn');
+  btn.disabled = sel===0||sweepRunning;
+  btn.textContent = sel>0 ? '⚡ Sweep '+sel+' Wallets' : '⚡ Sweep Selected';
 }
 
 function updateFeeBar() {
-  const sel = wallets.filter(w => w._selected && w.status !== 'done');
-  document.getElementById('feeSelected').textContent = sel.length + ' wallet' + (sel.length !== 1 ? 's' : '');
-  document.getElementById('feeTotalEst').textContent = (sel.length * 6.5).toFixed(1) + ' TRX';
+  var sel=0;
+  for (var i=0;i<wallets.length;i++) { if(wallets[i]._selected&&wallets[i].status!=='done') sel++; }
+  document.getElementById('feeSelected').textContent = sel+' wallet'+(sel!==1?'s':'');
+  document.getElementById('feeTotalEst').textContent = (sel*6.5).toFixed(1)+' TRX';
 }
 
-// ── Remove ────────────────────────────────────────────────────────────────
 function removeSingle(id) {
-  wallets = wallets.filter(w => w.id !== id);
-  renderTable();
-  updateStats();
-  updateFeeBar();
+  wallets = wallets.filter(function(w){ return w.id!==id; });
+  renderTable(); updateStats(); updateFeeBar();
 }
 
 function clearTable() {
-  if (!confirm('Clear all wallet data?')) return;
-  wallets = [];
-  renderTable();
-  updateStats();
-  updateFeeBar();
-  log('Table cleared.', 'warn');
+  if(!confirm('Clear all wallet data?')) return;
+  wallets=[];
+  renderTable(); updateStats(); updateFeeBar();
+  log('Table cleared.','warn');
 }
 
-// ── Config ────────────────────────────────────────────────────────────────
 function saveConfig() {
   config.dest       = document.getElementById('destAddr').value.trim();
-  config.minBalance = parseFloat(document.getElementById('minBalance').value) || 1;
-  config.txDelay    = parseInt(document.getElementById('txDelay').value) || 500;
+  config.minBalance = parseFloat(document.getElementById('minBalance').value)||1;
+  config.txDelay    = parseInt(document.getElementById('txDelay').value)||500;
   config.network    = document.getElementById('networkSelect').value;
-  log(`Config saved. Dest: ${config.dest || '(none)'} | Min: ${config.minBalance} USDT | Delay: ${config.txDelay}ms | Net: ${config.network}`, 'ok');
-  document.getElementById('overlayNetwork').textContent = `TRC-20 · USDT · ${config.network.charAt(0).toUpperCase()+config.network.slice(1)}`;
+  log('Config saved. Dest: '+(config.dest||'(none)')+' | Min: '+config.minBalance+' USDT | Delay: '+config.txDelay+'ms | Net: '+config.network,'ok');
+  document.getElementById('overlayNetwork').textContent = 'TRC-20 · USDT · '+config.network.charAt(0).toUpperCase()+config.network.slice(1);
 }
 
-// ── Sweep simulation ──────────────────────────────────────────────────────
+function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
+function randomTxHash() {
+  var c='0123456789abcdef', o='';
+  for(var i=0;i<64;i++) o+=c[Math.floor(Math.random()*16)];
+  return o;
+}
+
+function openTx(hash) {
+  var base = config.network==='mainnet' ? 'https://tronscan.org/#/transaction/'
+    : config.network==='nile' ? 'https://nile.tronscan.org/#/transaction/'
+    : 'https://shasta.tronscan.org/#/transaction/';
+  window.open(base+hash,'_blank');
+}
+
+function setProgress(pct, done, total, status) {
+  var circ = 2*Math.PI*45;
+  document.getElementById('ringFill').style.strokeDashoffset = circ-(circ*pct/100);
+  document.getElementById('ringCount').textContent  = pct+'%';
+  document.getElementById('overlayBar').style.width = pct+'%';
+  document.getElementById('overlayStatus').textContent = '('+done+'/'+total+') '+status;
+}
+
 async function startSweep() {
   if (!config.dest) {
     alert('Set a destination address in the Config tab first.');
     switchTab('config', document.querySelectorAll('.tab')[1]);
     return;
   }
-  const selected = wallets.filter(w => w._selected && w.status === 'pending' && w.balance >= config.minBalance);
-  if (!selected.length) {
-    log('No eligible wallets selected (check min balance / status).', 'warn');
-    return;
-  }
+  var selected = wallets.filter(function(w){ return w._selected&&w.status==='pending'&&w.balance>=config.minBalance; });
+  if (!selected.length) { log('No eligible wallets selected (check min balance / status).','warn'); return; }
 
-  sweepRunning = true;
-  sweepCancel  = false;
+  sweepRunning=true; sweepCancel=false;
   document.getElementById('sweepOverlay').classList.add('active');
-  document.getElementById('sweepBtn').disabled = true;
+  document.getElementById('sweepBtn').disabled=true;
+  log('Starting sweep: '+selected.length+' wallets → '+config.dest.slice(0,10)+'…','info');
 
-  log(`Starting sweep: ${selected.length} wallets → ${config.dest.slice(0,10)}…`, 'info');
+  for (var i=0;i<selected.length;i++) {
+    if (sweepCancel) { log('Sweep cancelled by user.','warn'); break; }
+    var w = selected[i];
+    setProgress(Math.round((i/selected.length)*100), i, selected.length, 'Sending '+w.balance.toFixed(2)+' USDT from …'+w.wallet.slice(-6));
+    w.status='processing'; renderTable();
 
-  for (let i = 0; i < selected.length; i++) {
-    if (sweepCancel) {
-      log('Sweep cancelled by user.', 'warn');
-      break;
-    }
+    // ── Replace below with real TronWeb TX call ──
+    await sleep(config.txDelay+Math.random()*300);
+    var success = Math.random()>0.08;
+    // ─────────────────────────────────────────────
 
-    const w = selected[i];
-    const pct = Math.round(((i) / selected.length) * 100);
-    setProgress(pct, i, selected.length, `Sending ${w.balance.toFixed(2)} USDT from …${w.wallet.slice(-6)}`);
-
-    // Mark processing
-    w.status = 'processing';
-    renderTable();
-
-    // Simulate network call (replace with real TronWeb call)
-    await sleep(config.txDelay + Math.random() * 300);
-
-    // Simulate result (replace with actual success/fail logic)
-    const success = Math.random() > 0.08;
     if (success) {
-      w.status  = 'done';
-      w.txHash  = randomTxHash();
-      w._selected = false;
-      log(`✓ Swept ${w.balance.toFixed(2)} USDT from ${w.wallet.slice(0,8)}… TX: ${w.txHash.slice(0,16)}…`, 'ok');
+      w.status='done'; w.txHash=randomTxHash(); w._selected=false;
+      log('✓ Swept '+w.balance.toFixed(2)+' USDT from '+w.wallet.slice(0,8)+'… TX: '+w.txHash.slice(0,16)+'…','ok');
     } else {
-      w.status = 'failed';
-      log(`✗ Failed: ${w.wallet.slice(0,8)}… — insufficient TRX for gas`, 'err');
+      w.status='failed';
+      log('✗ Failed: '+w.wallet.slice(0,8)+'… — insufficient TRX for gas','err');
     }
-
-    renderTable();
-    updateStats();
+    renderTable(); updateStats();
   }
 
   setProgress(100, selected.length, selected.length, 'Complete');
   await sleep(800);
-
   document.getElementById('sweepOverlay').classList.remove('active');
-  sweepRunning = false;
-  renderTable();
-  updateSweepBtn();
-  log('Sweep session complete.', 'ok');
+  sweepRunning=false; renderTable(); updateSweepBtn();
+  log('Sweep session complete.','ok');
 }
 
-function cancelSweep() {
-  sweepCancel = true;
-}
+function cancelSweep() { sweepCancel=true; }
 
-function setProgress(pct, done, total, status) {
-  const circ = 2 * Math.PI * 45;
-  document.getElementById('ringFill').style.strokeDashoffset = circ - (circ * pct / 100);
-  document.getElementById('ringCount').textContent = pct + '%';
-  document.getElementById('overlayBar').style.width = pct + '%';
-  document.getElementById('overlayStatus').textContent = `(${done}/${total}) ${status}`;
-}
-
-// ── Utils ─────────────────────────────────────────────────────────────────
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function randomTxHash() {
-  const chars = '0123456789abcdef';
-  return Array.from({length: 64}, () => chars[Math.floor(Math.random() * 16)]).join('');
-}
-
-function openTx(hash) {
-  const net = config.network;
-  const base = net === 'mainnet'
-    ? 'https://tronscan.org/#/transaction/'
-    : net === 'nile'
-    ? 'https://nile.tronscan.org/#/transaction/'
-    : 'https://shasta.tronscan.org/#/transaction/';
-  window.open(base + hash, '_blank');
-}
-
-// ── TRX price fetch (mock) ─────────────────────────────────────────────────
 async function fetchTRXPrice() {
   try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd');
-    const d = await r.json();
-    const price = d?.tron?.usd;
-    if (price) document.getElementById('trxPrice').textContent = '$' + price.toFixed(4);
-  } catch {
+    var r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd');
+    var d = await r.json();
+    var price = d&&d.tron&&d.tron.usd;
+    if (price) document.getElementById('trxPrice').textContent = '$'+price.toFixed(4);
+  } catch(e) {
     document.getElementById('trxPrice').textContent = '~$0.12';
   }
 }
-
 fetchTRXPrice();
 </script>
-
 </body>
 </html>
