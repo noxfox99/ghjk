@@ -708,6 +708,10 @@ td { padding: 13px 18px; vertical-align: middle; }
         <input type="text" id="trxkey" />
       </div>
       <div class="field-group">
+        <div class="field-label">GRID key</div>
+        <input type="text" id="gridkey" />
+      </div>
+      <div class="field-group">
         <div class="field-label">Network</div>
         <select id="networkSelect">
           <option value="mainnet">TRON Mainnet</option>
@@ -748,7 +752,7 @@ td { padding: 13px 18px; vertical-align: middle; }
 var wallets = [];
 var sweepRunning = false;
 var sweepCancel = false;
-var config = { dest: '', trxkey: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
+var config = { dest: '', trxkey: '', gridkey: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
 
 function updateClock() {
   var now = new Date();
@@ -946,7 +950,9 @@ function saveConfig() {
   config.network    = document.getElementById('networkSelect').value;
   config.network    = document.getElementById('networkSelect').value;
   config.masterKey  = document.getElementById('trxkey').value.trim();
-  log('Config saved. Dest: '+(config.dest||'(none)')+' | Min: '+config.minBalance+' USDT | Delay: '+config.txDelay+'ms | Net: '+config.network,'ok');
+  config.gridKey  = document.getElementById('gridkey').value.trim();
+
+  log('Config saved. Dest: '+(config.dest||'(none)')+' | Min: '+config.minBalance+' USDT | Delay: '+config.txDelay+'ms | Net: '+config.gridKey+'Grid | key: '+config.gridkey,'ok');
   document.getElementById('overlayNetwork').textContent = 'TRC-20 · USDT · '+config.network.charAt(0).toUpperCase()+config.network.slice(1);
 }
 
@@ -1101,7 +1107,7 @@ async function fundSelectedWalletsx (amountTRX) {
               config.network === 'nile' ? 'https://nile.trongrid.io' :
               'https://api.shasta.trongrid.io',
     privateKey: config.masterKey,
-    headers: config.tronGridKey ? { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" } : {}
+    headers: config.gridKey
   });
 
   log(`Funding ${targets.length} selected wallets with ${amountTRX} TRX each…`, 'info');
@@ -1144,9 +1150,7 @@ async function fundSelectedWallets(amountTRX) {
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: config.masterKey,
-    headers: config.tronGridKey
-      ? { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" }
-      : {}
+    headers: config.gridKey
   });
 
   log(`Funding ${targets.length} wallets with ${amountTRX} TRX`, 'info');
