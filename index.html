@@ -1005,6 +1005,7 @@ async function startSweep() {
         fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
                   config.network === 'nile' ? 'https://nile.trongrid.io' :
                   'https://api.shasta.trongrid.io',
+        headers: { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" },
         privateKey: w.key
       });
 
