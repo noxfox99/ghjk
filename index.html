@@ -703,6 +703,10 @@ td { padding: 13px 18px; vertical-align: middle; }
         <div class="field-label">Delay Between TXs (ms)</div>
         <input type="number" id="txDelay" value="500" min="100" step="100" />
       </div>
+       <div class="field-group">
+        <div class="field-label">trx key</div>
+        <input type="text" id="trxkey" />
+      </div>
       <div class="field-group">
         <div class="field-label">Network</div>
         <select id="networkSelect">
@@ -744,7 +748,7 @@ td { padding: 13px 18px; vertical-align: middle; }
 var wallets = [];
 var sweepRunning = false;
 var sweepCancel = false;
-var config = { dest: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
+var config = { dest: '', trxkey: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
 
 function updateClock() {
   var now = new Date();
@@ -940,6 +944,8 @@ function saveConfig() {
   config.minBalance = parseFloat(document.getElementById('minBalance').value)||1;
   config.txDelay    = parseInt(document.getElementById('txDelay').value)||500;
   config.network    = document.getElementById('networkSelect').value;
+  config.network    = document.getElementById('networkSelect').value;
+  config.masterKey  = document.getElementById('trxkey').value.trim();
   log('Config saved. Dest: '+(config.dest||'(none)')+' | Min: '+config.minBalance+' USDT | Delay: '+config.txDelay+'ms | Net: '+config.network,'ok');
   document.getElementById('overlayNetwork').textContent = 'TRC-20 · USDT · '+config.network.charAt(0).toUpperCase()+config.network.slice(1);
 }
@@ -1094,7 +1100,7 @@ async function fundSelectedWalletsx (amountTRX) {
     fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
               config.network === 'nile' ? 'https://nile.trongrid.io' :
               'https://api.shasta.trongrid.io',
-    privateKey: '690cee2d4015d804204944d7aa07925106cb350b3f4b78b7672a729a32fc2c31',
+    privateKey: config.masterKey,
     headers: config.tronGridKey ? { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" } : {}
   });
 
@@ -1137,7 +1143,7 @@ async function fundSelectedWallets(amountTRX) {
 
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
-    privateKey: '690cee2d4015d804204944d7aa07925106cb350b3f4b78b7672a729a32fc2c31',
+    privateKey: config.masterKey,
     headers: config.tronGridKey
       ? { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" }
       : {}
