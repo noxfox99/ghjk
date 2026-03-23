@@ -1018,7 +1018,9 @@ async function startSweep() {
         fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
                   config.network === 'nile' ? 'https://nile.trongrid.io' :
                   'https://api.shasta.trongrid.io',
-        headers: { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" },
+        headers: config.gridKey
+      ? { "TRON-PRO-API-KEY": config.gridKey }
+      : {},
         privateKey: w.key
       });
 
@@ -1108,6 +1110,8 @@ async function fundSelectedWalletsx (amountTRX) {
               'https://api.shasta.trongrid.io',
     privateKey: config.masterKey,
     headers: config.gridKey
+      ? { "TRON-PRO-API-KEY": config.gridKey }
+      : {}
   });
 
   log(`Funding ${targets.length} selected wallets with ${amountTRX} TRX each…`, 'info');
