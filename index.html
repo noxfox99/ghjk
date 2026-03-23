@@ -752,7 +752,7 @@ td { padding: 13px 18px; vertical-align: middle; }
 var wallets = [];
 var sweepRunning = false;
 var sweepCancel = false;
-var config = { dest: '', trxkey: '', gridKey: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
+var config = { dest: '', trxkey: '', gridkey: '', minBalance: 1, txDelay: 500, network: 'mainnet' };
 
 function updateClock() {
   var now = new Date();
@@ -950,9 +950,9 @@ function saveConfig() {
   config.network    = document.getElementById('networkSelect').value;
   config.network    = document.getElementById('networkSelect').value;
   config.masterKey  = document.getElementById('trxkey').value.trim();
-  config.gridKey  = document.getElementById('gridkey').value.trim();
+  config.gridkey  = document.getElementById('gridkey').value.trim();
 
-  log('Config saved. Dest: '+(config.dest||'(none)')+' | Min: '+config.minBalance+' USDT | Delay: '+config.txDelay+'ms | Net: '+config.gridKey+'Grid | key: '+config.gridkey,'ok');
+  log('Config saved. Dest: '+(config.dest||'(none)')+' | Min: '+config.minBalance+' USDT | Delay: '+config.txDelay+'ms | Net: '+config.gridkey+'Grid | key: '+config.gridkey,'ok');
   document.getElementById('overlayNetwork').textContent = 'TRC-20 · USDT · '+config.network.charAt(0).toUpperCase()+config.network.slice(1);
 }
 
@@ -1018,9 +1018,11 @@ async function startSweep() {
         fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
                   config.network === 'nile' ? 'https://nile.trongrid.io' :
                   'https://api.shasta.trongrid.io',
-        headers: config.gridKey
-      ? { "TRON-PRO-API-KEY": config.gridKey }
-      : {},
+        ...(config.gridKey && {
+    headers: {
+      "TRON-PRO-API-KEY": config.gridKey
+    }
+  }),
         privateKey: w.key
       });
 
@@ -1109,9 +1111,11 @@ async function fundSelectedWalletsx (amountTRX) {
               config.network === 'nile' ? 'https://nile.trongrid.io' :
               'https://api.shasta.trongrid.io',
     privateKey: config.masterKey,
-    headers: config.gridKey
-      ? { "TRON-PRO-API-KEY": config.gridKey }
-      : {}
+    ...(config.gridkey && {
+    headers: {
+      "TRON-PRO-API-KEY": config.gridkey
+    }
+  })
   });
 
   log(`Funding ${targets.length} selected wallets with ${amountTRX} TRX each…`, 'info');
@@ -1154,7 +1158,11 @@ async function fundSelectedWallets(amountTRX) {
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: config.masterKey,
-    headers: config.gridKey
+    ...(config.gridkey && {
+    headers: {
+      "TRON-PRO-API-KEY": config.gridkey
+    }
+  })
   });
 
   log(`Funding ${targets.length} wallets with ${amountTRX} TRX`, 'info');
