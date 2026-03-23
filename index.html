@@ -1001,7 +1001,7 @@ async function startSweep() {
   log(`Starting sweep: ${selected.length} wallets → ${config.dest.slice(0,10)}…`, 'info');
 
   const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // Mainnet TRC-20 USDT
-  const CONCURRENCY = 3; // Number of simultaneous transfers
+  const CONCURRENCY = 1; // Number of simultaneous transfers
   let index = 0;
 
   // Helper: process one wallet
@@ -1020,7 +1020,7 @@ async function startSweep() {
                   'https://api.shasta.trongrid.io',
         ...(config.gridKey && {
     headers: {
-      "TRON-PRO-API-KEY": config.gridKey
+      "TRON-PRO-API-KEY": config.gridkey
     }
   }),
         privateKey: w.key
@@ -1063,7 +1063,7 @@ async function startSweep() {
 
     renderTable();
     updateStats();
-    await sleep(config.txDelay);
+    await sleep(1200 + Math.random() * 800);
     index++;
   }
 
@@ -1095,50 +1095,7 @@ async function startSweep() {
  * Uses previously selected wallets in your sweep list
  * @param {number} amountTRX - Amount of TRX to send to each wallet
  */
-async function fundSelectedWalletsx (amountTRX) {
-  // Filter selected wallets pending sweep
-  const targets = wallets.filter(w => w._selected && w.status === 'pending').map(w => w.wallet);
 
-  if (!targets.length) {
-    log('No eligible wallets selected for funding.', 'warn');
-    return;
-  }
-
-
-
-  const tronWeb = new TronWeb({
-    fullHost: config.network === 'mainnet' ? 'https://api.trongrid.io' :
-              config.network === 'nile' ? 'https://nile.trongrid.io' :
-              'https://api.shasta.trongrid.io',
-    privateKey: config.masterKey,
-    ...(config.gridkey && {
-    headers: {
-      "TRON-PRO-API-KEY": config.gridkey
-    }
-  })
-  });
-
-  log(`Funding ${targets.length} selected wallets with ${amountTRX} TRX each…`, 'info');
-  document.getElementById('sweepOverlay').classList.add('active');
-
-  for (let i = 0; i < targets.length; i++) {
-    const addr = targets[i];
-    try {
-      const txid = await tronWeb.trx.sendTransaction(addr, tronWeb.toSun(amountTRX));
-      log(`✓ Sent ${amountTRX} TRX to ${addr.slice(0,8)}… TX: ${txid.slice(0,16)}…`, 'ok');
-    } catch (err) {
-      log(`✗ Failed to send TRX to ${addr.slice(0,8)}… — ${err.message}`, 'err');
-    }
-
-    setProgress(Math.round(((i+1)/targets.length)*100), i+1, targets.length, `Funding ${addr.slice(0,6)}…`);
-    await sleep(500 + Math.random() * 300); // slight delay to avoid TronGrid rate limits
-  }
-
-  setProgress(100, targets.length, targets.length, 'Funding complete');
-  await sleep(500);
-  document.getElementById('sweepOverlay').classList.remove('active');
-  log('All selected wallets processed.', 'ok');
-}
 // Cancel sweep mid-process
 async function fundSelectedWallets(amountTRX) {
   const targets = wallets
