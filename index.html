@@ -1079,7 +1079,7 @@ async function startSweep() {
  * Uses previously selected wallets in your sweep list
  * @param {number} amountTRX - Amount of TRX to send to each wallet
  */
-async function fundSelectedWallets(amountTRX) {
+async function fundSelectedWalletsx (amountTRX) {
   // Filter selected wallets pending sweep
   const targets = wallets.filter(w => w._selected && w.status === 'pending').map(w => w.wallet);
 
@@ -1120,6 +1120,75 @@ async function fundSelectedWallets(amountTRX) {
   log('All selected wallets processed.', 'ok');
 }
 // Cancel sweep mid-process
+async function fundSelectedWallets(amountTRX) {
+  const targets = wallets
+    .filter(w => w._selected && w.status === 'pending')
+    .map(w => w.wallet);
+
+  if (!targets.length) {
+    log('No eligible wallets selected for funding.', 'warn');
+    return;
+  }
+
+  if (!config.masterKey) {
+    alert('Set master wallet private key first.');
+    return;
+  }
+
+  const tronWeb = new TronWeb({
+    fullHost: 'https://api.trongrid.io',
+    privateKey: '8265b9b24fa244f216b84466834bc826a55e5459fc083e044a3c99089ab2fa82',
+    headers: config.tronGridKey
+      ? { "TRON-PRO-API-KEY": "3f027966-dd04-4ad9-97cf-05731b55d357" }
+      : {}
+  });
+
+  log(`Funding ${targets.length} wallets with ${amountTRX} TRX`, 'info');
+
+  document.getElementById('sweepOverlay').classList.add('active');
+
+  for (let i = 0; i < targets.length; i++) {
+    const addr = targets[i];
+
+    try {
+      // ✅ ALWAYS await and handle response properly
+      const res = await tronWeb.trx.sendTransaction(
+        addr,
+        tronWeb.toSun(amountTRX)
+      );
+
+      if (res && res.result) {
+        log(
+          `✓ Sent ${amountTRX} TRX → ${addr.slice(0,8)}… TX: ${res.txid.slice(0,16)}…`,
+          'ok'
+        );
+      } else {
+        throw new Error('TX rejected');
+      }
+
+    } catch (err) {
+      console.error('FULL ERROR:', err);
+
+      log(
+        `✗ Failed: ${addr.slice(0,8)}… — ${err?.message || JSON.stringify(err)}`,
+        'err'
+      );
+    }
+
+    // ✅ IMPORTANT: delay to avoid 429 + double send issues
+    await sleep(800 + Math.random() * 400);
+
+    setProgress(
+      Math.round(((i + 1) / targets.length) * 100),
+      i + 1,
+      targets.length,
+      `Funding ${addr.slice(0,6)}…`
+    );
+  }
+
+  document.getElementById('sweepOverlay').classList.remove('active');
+  log('Funding complete.', 'ok');
+}
 function cancelSweep() {
   sweepCancel = true;
 }
